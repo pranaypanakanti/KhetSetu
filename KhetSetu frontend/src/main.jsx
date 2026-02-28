@@ -20,6 +20,7 @@ import Dashboard from "./pages/app/dashboard.jsx";
 import Profile from "./pages/app/Profile.jsx";
 import AppLayout from "./AppLayout.jsx";
 import EquipmentDetails from "./pages/app/EquipmentDetails.jsx";
+import AddListing from "./pages/app/AddListing.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -39,7 +40,8 @@ const router = createBrowserRouter(
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/completeprofile" element={<CompleteProfile />} />
-          <Route path="/equipment/:id" element={<EquipmentDetails/>}/>
+          <Route path="/equipment/:id" element={<EquipmentDetails />} />
+          <Route path="/add-listing" element={<AddListing />} />
         </Route>
       </Route>
     </>,

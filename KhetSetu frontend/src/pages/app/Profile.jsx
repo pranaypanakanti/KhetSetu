@@ -1,56 +1,82 @@
 import React, { useState, useEffect } from "react";
-import {apiFetch} from "../../services/apiFetch.js";
 
 export default function Profile() {
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await apiFetch("/api/user/profile", {
-          method: "GET",
+  const fetchProfile = async (retry = false) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${baseUrl}/api/users/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      // 🔁 If access token expired → refresh
+      if (res.status === 401 && !retry) {
+        const refreshRes = await fetch(`${baseUrl}/api/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          setProfile(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch profile", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          localStorage.setItem("token", refreshData.accessToken);
 
+          // Retry once with new token
+          return fetchProfile(true);
+        }
+      }
+
+      if (!res.ok) {
+        setProfile(null);
+        return;
+      }
+
+      const data = await res.json();
+      setProfile(data);
+    } catch (err) {
+      console.error("Profile fetch failed:", err);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
-  if (loading)
-    return <div className="p-12 text-gray-500">Loading profile...</div>;
+  if (loading) return <div className="p-10">Loading profile...</div>;
 
   if (!profile)
-    return <div className="p-12 text-gray-500">No profile found</div>;
+    return <div className="p-10 text-red-500">No profile found</div>;
 
   return (
-    <div className="px-16 py-12">
-      <h1 className="text-3xl font-semibold mb-8">Profile</h1>
+    <div className="p-12">
+      <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-      <div className="bg-white p-8 rounded-2xl border max-w-xl space-y-4">
-        <div>
-          <p className="text-gray-500 text-sm">Name</p>
-          <p className="text-lg font-medium">{profile.name}</p>
-        </div>
-
-        <div>
-          <p className="text-gray-500 text-sm">Email</p>
-          <p className="text-lg font-medium">{profile.email}</p>
-        </div>
-
-        <div>
-          <p className="text-gray-500 text-sm">Region</p>
-          <p className="text-lg font-medium">{profile.region}</p>
-        </div>
+      <div className="bg-white p-8 rounded-2xl shadow-md max-w-xl space-y-4">
+        <p>
+          <strong>Name:</strong> {profile.name}
+        </p>
+        <p>
+          <strong>Mobile:</strong> {profile.mobile}
+        </p>
+        <p>
+          <strong>Email:</strong> {profile.email || "Not set"}
+        </p>
+        <p>
+          <strong>Village:</strong> {profile.villageName || "Not set"}
+        </p>
+        <p>
+          <strong>Trust Score:</strong> ⭐ {profile.trustScore}
+        </p>
       </div>
     </div>
   );

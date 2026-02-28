@@ -4,148 +4,215 @@ import { useNavigate } from "react-router-dom";
 export default function Dashboard() {
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BASE_URL;
+  const token = localStorage.getItem("token");
 
-  const [stats, setStats] = useState({
-    rented: 2,
-    listings: 1,
-    bookings: 3,
-  });
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [menuOpen, setMenuOpen] = useState(null);
-
+  // 🔥 Fetch Dashboard
   useEffect(() => {
-    // ==========================================
-    // TODO:
-    // GET `${baseUrl}/api/dashboard`
-    // headers: Authorization Bearer token
-    // credentials: "include"
-    // Then populate stats & sections
-    // ==========================================
-  }, []);
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/bookings/dashboard`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.error("Dashboard fetch failed:", res.status);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Dashboard data:", data);
+        setDashboard(data);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [baseUrl, token]);
+
+  // 🔥 Delete Listing
+  const handleDeleteListing = async (id) => {
+    try {
+      const res = await fetch(`${baseUrl}/api/products/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 204) {
+        // refresh dashboard
+        setDashboard((prev) => ({
+          ...prev,
+          myListings: prev.myListings.filter((item) => item.id !== id),
+        }));
+      } else if (res.status === 409) {
+        alert("Cannot delete. Product is currently rented.");
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
+  // 🔥 Cancel Booking
+  const cancelBooking = async (id) => {
+    await fetch(`${baseUrl}/api/bookings/${id}/cancel`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    window.location.reload();
+  };
+
+  // 🔥 Complete Booking (Owner)
+  const completeBooking = async (id) => {
+    await fetch(`${baseUrl}/api/bookings/${id}/complete`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    window.location.reload();
+  };
+
+  if (loading) return <div className="p-10">Loading dashboard...</div>;
+  if (!dashboard) return <div className="p-10">No dashboard data</div>;
 
   return (
     <div className="bg-gray-100 min-h-screen px-16 py-12 space-y-10">
-      {/* TOP GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* LEFT BIG OVERVIEW CARD */}
-        <div className="bg-white rounded-3xl p-8 border">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Dashboard Overview</h2>
-            <button className="text-sm border px-4 py-1 rounded-full">
-              Weekly
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6 mt-6">
-            <div>
-              <p className="text-sm text-gray-500">Rented</p>
-              <p className="text-3xl font-semibold mt-2">{stats.rented}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Listings</p>
-              <p className="text-3xl font-semibold mt-2">{stats.listings}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Bookings</p>
-              <p className="text-3xl font-semibold mt-2">{stats.bookings}</p>
-            </div>
-          </div>
-
-          {/* Chart Placeholder */}
-          <div className="mt-10 h-40 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 text-sm">
-            Chart placeholder (Bookings Trend)
-          </div>
+      {/* STATS */}
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl border">
+          <p className="text-gray-500 text-sm">Renting Now</p>
+          <p className="text-3xl font-semibold">
+            {dashboard.currentRentals.length}
+          </p>
         </div>
 
-        {/* RIGHT SIDE CARD */}
-        <div className="bg-white rounded-3xl p-8 border">
-          <h2 className="text-xl font-semibold mb-6">Activity Breakdown</h2>
+        <div className="bg-white p-6 rounded-2xl border">
+          <p className="text-gray-500 text-sm">My Listings</p>
+          <p className="text-3xl font-semibold">
+            {dashboard.myListings.length}
+          </p>
+        </div>
 
-          <div className="h-40 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 text-sm">
-            Pie / Donut Chart Placeholder
-          </div>
+        <div className="bg-white p-6 rounded-2xl border">
+          <p className="text-gray-500 text-sm">My Renters</p>
+          <p className="text-3xl font-semibold">
+            {dashboard.activeBookingsOnMyListings.length}
+          </p>
         </div>
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* ACTIONS */}
       <div className="flex gap-6">
         <button
           onClick={() => navigate("/equipment")}
-          className="px-6 py-3 border rounded-xl hover:bg-gray-200 transition"
+          className="px-6 py-3 border rounded-xl hover:bg-gray-200"
         >
           Rent Equipment
         </button>
 
         <button
           onClick={() => navigate("/add-listing")}
-          className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
+          className="px-6 py-3 bg-green-600 text-white rounded-xl"
         >
           Add Listing
         </button>
       </div>
 
-      {/* LOWER GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* RECENT RENTALS */}
-        <div className="bg-white rounded-3xl p-8 border">
-          <h2 className="text-lg font-semibold mb-4">Recent Rentals</h2>
-          <div className="space-y-3 text-sm text-gray-600">
-            <p>• Tractor - 12 Jan 2025</p>
-            <p>• Seeder - 18 Jan 2025</p>
+      {/* RENTING NOW */}
+      <div className="bg-white p-8 rounded-3xl border">
+        <h2 className="text-lg font-semibold mb-6">Renting Now</h2>
+
+        {dashboard.currentRentals.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center border rounded-lg px-4 py-3 mb-3"
+          >
+            <div>
+              <p className="font-medium">{item.productName}</p>
+              <p className="text-gray-500 text-sm">
+                ₹{item.totalPrice} | {item.status}
+              </p>
+            </div>
+            <button
+              onClick={() => cancelBooking(item.id)}
+              className="text-red-500 text-sm"
+            >
+              Cancel
+            </button>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* MY LISTINGS WITH THREE DOTS */}
-        <div className="bg-white rounded-3xl p-8 border relative">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">My Listings</h2>
-          </div>
+      {/* MY LISTINGS */}
+      <div className="bg-white p-8 rounded-3xl border">
+        <h2 className="text-lg font-semibold mb-6">My Listings</h2>
 
-          <div className="space-y-4 text-sm text-gray-600">
-            {/* Example Listing */}
-            <div className="flex justify-between items-center border rounded-lg px-4 py-3">
-              <div>
-                <p className="font-medium">Harvester</p>
-                <p className="text-gray-500">₹3500/day</p>
-              </div>
+        {dashboard.myListings.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center border rounded-lg px-4 py-3 mb-3"
+          >
+            <div>
+              <p className="font-medium">{item.templateName}</p>
+              <p className="text-gray-500 text-sm">
+                ₹{item.priceDay} | {item.status}
+              </p>
+            </div>
 
-              {/* Three Dots */}
-              <div className="relative">
-                <button
-                  onClick={() => setMenuOpen(menuOpen === 1 ? null : 1)}
-                  className="text-gray-500 hover:text-black text-xl"
-                >
-                  ⋮
-                </button>
-
-                {/* Dropdown */}
-                {menuOpen === 1 && (
-                  <div className="absolute right-0 mt-2 w-28 bg-white border rounded-lg text-sm shadow-sm">
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={() => navigate("/edit-listing")}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-                      onClick={() => {
-                        // TODO:
-                        // DELETE `${baseUrl}/api/listing/{id}`
-                        // headers: Authorization Bearer token
-                        // credentials: "include"
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigate(`/edit-listing/${item.id}`)}
+                className="text-blue-500 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteListing(item.id)}
+                className="text-red-500 text-sm"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        </div>
+        ))}
+      </div>
+
+      {/* MY RENTERS */}
+      <div className="bg-white p-8 rounded-3xl border">
+        <h2 className="text-lg font-semibold mb-6">
+          Active Rentals On My Listings
+        </h2>
+
+        {dashboard.activeBookingsOnMyListings.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center border rounded-lg px-4 py-3 mb-3"
+          >
+            <div>
+              <p className="font-medium">{item.productName}</p>
+              <p className="text-gray-500 text-sm">Renter: {item.renterName}</p>
+            </div>
+            <button
+              onClick={() => completeBooking(item.id)}
+              className="text-green-600 text-sm"
+            >
+              Mark Complete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
