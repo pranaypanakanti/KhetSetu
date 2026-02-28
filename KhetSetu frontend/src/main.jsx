@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.jsx";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -15,14 +14,27 @@ import About from "./pages/landing/About.jsx";
 import LandingLayout from "./landing_layout.jsx";
 import SignIn from "./pages/landing/Signin.jsx";
 
+import Equipment from "./pages/app/Equipment.jsx";
+import Dashboard from "./pages/app/dashboard.jsx";
+import Profile from "./pages/app/Profile.jsx";
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
+      {/* 🌍 Public routes */}
       <Route path="/" element={<LandingLayout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
       </Route>
-      <Route path="/signin" element={<SignIn/>}/>
+
+      <Route path="/signin" element={<SignIn />} />
+
+      {/* 🔐 Protected Routes */}
+      <Route element={<ProtectedRoutes />}>
+        <Route path="/equipment" element={<Equipment />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
     </>,
   ),
 );

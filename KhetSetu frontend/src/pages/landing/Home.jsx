@@ -1,7 +1,7 @@
 import React from "react";
 import background from "../../assets/background.jpg";
 import { Navigate, useNavigate } from "react-router-dom";
-import LandingLayout from "../../landing_layout";
+
 
 export default function Home() {
   const navigate = useNavigate();
@@ -40,6 +40,7 @@ export default function Home() {
                        px-10 py-4 text-lg 
                        rounded-full font-semibold 
                        hover:scale-105 transition"
+              onClick={()=>{navigate("/equipment");}}
           >
             Get Started →
           </button>

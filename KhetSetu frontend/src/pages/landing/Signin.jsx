@@ -1,41 +1,86 @@
 import React, { useState } from "react";
-
 export default function SignIn() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
-// /api/auth
-  const handleSendOtp = () => {
-    if (phone && phone.length === 10) {
-      
-      
 
-      console.log("Send OTP to:", phone);
-
-      setOtpSent(true); // Show OTP input after successful response
-    } else if (!phone) {
+  // 🔹 Send OTP
+  const handleSendOtp = async () => {
+    if (!phone) {
       alert("Enter phone number");
-    } else {
+      return;
+    }
+
+    if (phone.length !== 10) {
       alert("Enter valid 10-digit phone number");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ mobile: phone }), // backend is using mobile
+      });
+
+      if (res.ok) {
+        alert("OTP sent successfully");
+        setOtpSent(true); // ✅ only here
+      } else {
+        alert("Failed to send OTP");
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      alert("Server error");
     }
   };
 
-  const handleVerifyOtp = () => {
-    if (otp) {
-      // 🔹 TODO: Call backend API
-      // POST `${baseUrl}/auth/verify-otp`
-      // Body: { phone, otp }
-
-      console.log("Verify OTP:", otp);
-
-      // 🔹 TODO:
-      // If success:
-      // 1. Store token in localStorage
-      // 2. Redirect to dashboard
-    } else {
+  // 🔹 Verify OTP 
+  const handleVerifyOtp = async () => {
+    if (!otp) {
       alert("Enter OTP");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${baseUrl}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials:"include",
+        body: JSON.stringify({
+          mobile: phone, // matches backend
+          otp: otp,
+        }),
+      });
+
+      const data = await res.json(); // backend returns AuthResponse
+
+      if (res.ok) {
+        console.log("Verification success:", data);
+
+        // 🔐 Store token (assuming AuthResponse contains token)
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
+        // Optional: store user info if returned
+        // localStorage.setItem("user", JSON.stringify(data.user));
+
+        // 🔁 Redirect after login
+        window.location.href = "/dashboard";
+      } else {
+        alert(data.message || "Invalid OTP");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Server error");
     }
   };
 
@@ -45,7 +90,7 @@ export default function SignIn() {
 
       <div className="bg-white/80 backdrop-blur-md shadow-xl rounded-3xl p-10 w-[380px] flex flex-col items-center">
         <h1 className="text-2xl font-semibold mb-6 text-gray-800">
-          Signin to KhetSetu
+          Sign in to KhetSetu
         </h1>
 
         {/* Phone Input */}
@@ -64,8 +109,8 @@ export default function SignIn() {
         {/* Send OTP Button */}
         {!otpSent && (
           <button
-            className="mt-5 w-full py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
             onClick={handleSendOtp}
+            className="mt-5 w-full py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
           >
             Send OTP
           </button>
@@ -83,8 +128,8 @@ export default function SignIn() {
             />
 
             <button
-              className="mt-5 w-full py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
               onClick={handleVerifyOtp}
+              className="mt-5 w-full py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition"
             >
               Verify OTP
             </button>

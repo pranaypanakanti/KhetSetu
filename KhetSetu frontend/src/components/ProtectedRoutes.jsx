@@ -1,28 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 function ProtectedRoutes() {
-  const [isAuth, setisAuth] = useState(false);
+  const [isAuth, setIsAuth] = useState(null);
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
-    fetch("apiendpoint", {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => {
-        if (res.ok) {
-          setisAuth(true);
-        } else {
-          setisAuth(false);
-        }
-      })
-      .catch(() => {
-        setisAuth(false);
-      });
-  });
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/auth/me`, {
+          method: "GET",
+          credentials: "include", //check endpoint for this
+        });
 
-  if (isAuth === null) return <div>checking login</div>;
-  if (!isAuth) return <Navigate to={"/login"} />;
+        if (res.ok) {
+          setIsAuth(true);
+        } else {
+          setIsAuth(false);
+        }
+      } catch {
+        setIsAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isAuth === null) return <div>Checking login...</div>;
+
+  if (!isAuth) return <Navigate to="/signin" replace />;
+
+  return <Outlet />;
 }
 
 export default ProtectedRoutes;
