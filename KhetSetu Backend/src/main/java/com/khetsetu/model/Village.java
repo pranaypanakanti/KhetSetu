@@ -12,8 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Village {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(unique = true, nullable = false)
     private String address;

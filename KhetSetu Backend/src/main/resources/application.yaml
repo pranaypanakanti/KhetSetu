@@ -1,57 +1,55 @@
 spring:
   application:
     name: khetsetu
-
-  CORS_ALLOWED_ORIGINS: http://localhost:5173,https://localhost:5173
-
   config:
-    import: optional:env
+    import: optional:file:.env[.properties]
 
-    datasource:
-      url: ${SPRING_DATASOURCE_URL}
-      username: ${SPRING_DATASOURCE_USERNAME}
-      password: ${SPRING_DATASOURCE_PASSWORD}
-      driver-class-name: org.postgresql.Driver
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
-      hikari:
-        maximum-pool-size: 3
-        minimum-idle: 1
-        connection-timeout: 30000
-        idle-timeout: 600000
-        max-lifetime: 1800000
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
-        data-source-properties:
-          cachePrepStmts: false
-          useServerPrepStmts: false
-          prepareThreshold: 0
+      data-source-properties:
+        cachePrepStmts: false
+        useServerPrepStmts: false
+        prepareThreshold: 0
+        pgbouncer: true
 
-          pgbouncer: true
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
 
-        connection-test-query: SELECT 1
-        validation-timeout: 5000
-        leak-detection-threshold: 60000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
 
-    jpa:
-      database-platform: org.hibernate.dialect.PostgreSQLDialect
-      hibernate:
-        ddl-auto: update
-      open-in-view: false
-      show-sql: false
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
-  jwt:
-    secret: ${JWT_SECRET}
-    access:
-      expiration: 1800000
-    refresh:
-      expiration: 2592000000
+jwt:
+  secret: ${JWT_SECRET}
+  access:
+    expiration: 1800000
+  refresh:
+    expiration: 2592000000
 
-  logging:
-    level:
-      org.springframework.security: WARN
-      org.springframework.web: WARN
-      org.hibernate: WARN
-      com.GAAC.GAAC.Backend: INFO
+logging:
+  level:
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    com.khetsetu: INFO
 
-  server:
-    port: 8080
-
+server:
+  port: 8080

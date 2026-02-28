@@ -1,11 +1,8 @@
 package com.khetsetu.model;
 
-import com.khetsetu.model.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "product_templates")
@@ -13,15 +10,13 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ProductTemplate {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(unique = true, nullable = false)
-    private String name; // e.g., "Mahindra 575 DI Tractor"
+    private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @Enumerated(EnumType.STRING)
+    private String category;
 
     private Double minPricePerDay;
     private Double maxPricePerDay;
