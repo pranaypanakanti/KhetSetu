@@ -3,7 +3,6 @@ import EquipmentCard from "../../components/app_components/EquipmentCard";
 
 export default function Equipment() {
   const baseUrl = import.meta.env.VITE_BASE_URL;
-  const token = localStorage.getItem("token");
 
   const [equipments, setEquipments] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,26 +11,28 @@ export default function Equipment() {
   const [error, setError] = useState(null);
 
   const fetchEquipments = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Not authenticated");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
+      const trimmedQuery = searchQuery.trim();
 
-      if (!token) {
-        setError("Not authenticated");
-        return;
-      }
-
-      const safeQuery = searchQuery ? searchQuery.trim() : "";
-
-      const url = `${baseUrl}/api/products/search?query=${encodeURIComponent(safeQuery)}`;
+      const url = `${baseUrl}/api/products/search?query=${encodeURIComponent(
+        trimmedQuery,
+      )}`;
 
       const res = await fetch(url, {
         method: "GET",
-        credentials: "include", // important for refresh cookie
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`, // 🔥 REQUIRED
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -40,21 +41,36 @@ export default function Equipment() {
       if (!res.ok) {
         console.log("Backend error:", data);
         setError("Failed to fetch products");
+        setEquipments([]);
         return;
       }
 
-      setEquipments(data);
+      setEquipments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Network error:", err);
       setError("Network error");
+      setEquipments([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔥 Auto search only when input has value
   useEffect(() => {
-    fetchEquipments();
-  }, []);
+    const trimmed = searchQuery.trim();
+
+    if (!trimmed) {
+      setEquipments([]);
+      setLoading(false);
+      return;
+    }
+
+    const debounce = setTimeout(() => {
+      fetchEquipments();
+    }, 400);
+
+    return () => clearTimeout(debounce);
+  }, [searchQuery, category]);
 
   return (
     <div className="px-16 py-12">
@@ -84,19 +100,16 @@ export default function Equipment() {
           <option value="FERTILIZERS">Fertilizers</option>
           <option value="OTHER">Other</option>
         </select>
-
-        <button
-          onClick={fetchEquipments}
-          className="px-6 py-2 bg-sky-600 text-white rounded-lg"
-        >
-          Search
-        </button>
       </div>
 
+      {/* Loading */}
       {loading && <p>Loading...</p>}
+
+      {/* Error */}
       {error && <p className="text-red-500">{error}</p>}
 
-      {!loading && !error && equipments.length === 0 && (
+      {/* No Results */}
+      {searchQuery.trim() && !loading && !error && equipments.length === 0 && (
         <p>No products found.</p>
       )}
 
