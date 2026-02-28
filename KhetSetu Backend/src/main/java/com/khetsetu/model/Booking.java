@@ -1,5 +1,6 @@
 package com.khetsetu.model;
 
+import com.khetsetu.model.enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,12 +31,14 @@ public class Booking {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
     private Double totalPrice;
 
-    private String status; // PENDING, ACCEPTED, REJECTED, CANCELLED, COMPLETED
 
     private String paymentStatus; // PENDING, PAID, REFUNDED
 

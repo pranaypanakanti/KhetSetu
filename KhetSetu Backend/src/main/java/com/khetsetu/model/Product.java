@@ -1,5 +1,6 @@
 package com.khetsetu.model;
 
+import com.khetsetu.model.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,7 +45,8 @@ public class Product {
     @ElementCollection
     private List<String> imageUrls;
 
-    private String status; // available, rented, maintenance
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

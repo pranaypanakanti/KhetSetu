@@ -1,7 +1,7 @@
 package com.khetsetu.service;
 
 import com.khetsetu.model.User;
-import com.khetsetu.model.dto.response.AuthResponse;
+import com.khetsetu.model.dto.response.AuthResponseDTO;
 import com.khetsetu.repository.UserRepository;
 import com.khetsetu.utilis.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,16 +25,19 @@ public class AuthService {
         // In real app, trigger SMS here
     }
 
-    public AuthResponse verifyOtp(String mobile, String otp, HttpServletResponse response) {
+    public AuthResponseDTO verifyOtp(String mobile, String otp, HttpServletResponse response) {
         boolean valid = otpService.validateOtp(mobile, otp);
         if (!valid) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired OTP");
         }
 
+        boolean[] isNewUser = {false};
+
         User user = userRepository.findByMobile(mobile).orElseGet(() -> {
+            isNewUser[0] = true;
             User newUser = new User();
             newUser.setMobile(mobile);
-            newUser.setName(""); // placeholder, user can update later
+            newUser.setName("");
             return userRepository.save(newUser);
         });
 
@@ -43,18 +46,18 @@ public class AuthService {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false) // set true in production with HTTPS
+                .secure(false)
                 .path("/")
-                .maxAge(Duration.ofDays(30)) // match refresh token expiry
+                .maxAge(Duration.ofDays(30))
                 .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
 
-        String message = user.getCreatedAt().equals(user.getUpdatedAt()) ? "User created" : "Login successful";
-        return new AuthResponse(accessToken, message);
+        String message = isNewUser[0] ? "User created" : "Login successful";
+        return new AuthResponseDTO(accessToken, message, isNewUser[0]);
     }
 
-    public AuthResponse refreshAccessToken(String refreshToken, HttpServletResponse response) {
+    public AuthResponseDTO refreshAccessToken(String refreshToken, HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token missing");
         }
@@ -79,7 +82,7 @@ public class AuthService {
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
 
-        return new AuthResponse(newAccessToken, "Token refreshed");
+        return new AuthResponseDTO(newAccessToken, "Token refreshed", false);
     }
 
     public void logout(HttpServletResponse response) {
@@ -87,7 +90,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(0) // immediately expire
+                .maxAge(0)
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
