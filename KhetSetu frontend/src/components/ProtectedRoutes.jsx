@@ -2,34 +2,47 @@ import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 function ProtectedRoutes() {
-  const [isAuth, setIsAuth] = useState(true);
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const res = await fetch(`${baseUrl}/api/auth/me`, {
-  //         method: "GET",
-  //         credentials: "include", //check endpoint for this
-  //       });
+  const [isAuth, setIsAuth] = useState(null); // null = checking
 
-  //       if (res.ok) {
-  //         setIsAuth(true);
-  //       } else {
-  //         setIsAuth(false);
-  //       }
-  //     } catch {
-  //       setIsAuth(false);
-  //     }
-  //   };
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/auth/refresh`, {
+          method: "POST",
+          credentials: "include", // 🔥 required for refresh cookie
+        });
 
-  //   checkAuth();
-  // }, []);
+        if (!res.ok) {
+          setIsAuth(false);
+          return;
+        }
 
+        const data = await res.json();
+
+        // 🔥 store new access token
+        if (data.accessToken) {
+          localStorage.setItem("token", data.accessToken);
+        }
+
+        setIsAuth(true);
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        setIsAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [baseUrl]);
+
+  // 🔹 Still checking
   if (isAuth === null) return <div>Checking login...</div>;
 
+  // 🔹 Not authenticated
   if (!isAuth) return <Navigate to="/signin" replace />;
 
+  // 🔹 Authenticated
   return <Outlet />;
 }
 
