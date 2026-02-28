@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 export default function SignIn() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const navigate = useNavigate();
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -31,6 +33,7 @@ export default function SignIn() {
       if (res.ok) {
         alert("OTP sent successfully");
         setOtpSent(true); // ✅ only here
+        console.log(res.json);
       } else {
         alert("Failed to send OTP");
       }
@@ -40,7 +43,7 @@ export default function SignIn() {
     }
   };
 
-  // 🔹 Verify OTP 
+  // 🔹 Verify OTP
   const handleVerifyOtp = async () => {
     if (!otp) {
       alert("Enter OTP");
@@ -53,28 +56,25 @@ export default function SignIn() {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials:"include",
+        credentials: "include",
         body: JSON.stringify({
-          mobile: phone, // matches backend
+          mobile: phone,
           otp: otp,
         }),
       });
 
-      const data = await res.json(); // backend returns AuthResponse
+      const data = await res.json();
 
       if (res.ok) {
-        console.log("Verification success:", data);
-
-        // 🔐 Store token (assuming AuthResponse contains token)
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
 
-        // Optional: store user info if returned
-        // localStorage.setItem("user", JSON.stringify(data.user));
-
-        // 🔁 Redirect after login
-        window.location.href = "/dashboard";
+        if (data.isNewUser) {
+          navigate("/complete-profile");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         alert(data.message || "Invalid OTP");
       }
