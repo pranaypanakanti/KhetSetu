@@ -1,7 +1,7 @@
 package com.khetsetu.service;
 
 import com.khetsetu.model.User;
-import com.khetsetu.repository.UserRepo;
+import com.khetsetu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class UserDetailService implements UserDetailsService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepo;
 
     @Override
     public UserDetails loadUserByUsername(String mobile) throws UsernameNotFoundException {
