@@ -1,5 +1,6 @@
 package com.khetsetu.model;
 
+import com.khetsetu.model.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class ProductTemplate {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    private String category;
+    private Category category;
 
     private Double minPricePerDay;
     private Double maxPricePerDay;

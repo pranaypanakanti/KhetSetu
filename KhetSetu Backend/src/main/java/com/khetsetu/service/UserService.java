@@ -21,29 +21,12 @@ public class UserService {
         User newUser = userRepo.findByEmail(email).orElse(null);
         if(newUser == null) throw new RuntimeException("User not found");
         newUser.setName(user.getName());
-        newUser.setCollegeId(user.getCollegeId());
-        newUser.setBranch(user.getBranch());
-        newUser.setMobileNumber(user.getMobileNumber());
-        newUser.setYearOfStudy(user.getYearOfStudy());
-        newUser.setAASID(user.getAASID());
-        newUser.setDescription(user.getDescription());
-        newUser.setLinkedinUrl(user.getLinkedinUrl());
-        newUser.setImageUrl(user.getImageURL());
         userRepo.save(newUser);
     }
 
     public void updateUser(UserDetailsDTO newUser, String email){
         User oldUser = userRepo.findByEmail(email).orElse(null);
         if(oldUser == null) throw new RuntimeException("User not found");
-        oldUser.setName(newUser.getName() != null && !newUser.getName().isEmpty() ? newUser.getName() : oldUser.getName());
-        oldUser.setCollegeId(newUser.getCollegeId() != null && !newUser.getCollegeId().isEmpty() ? newUser.getCollegeId() : oldUser.getCollegeId());
-        oldUser.setBranch(newUser.getBranch() != null && !newUser.getBranch().isEmpty() ? newUser.getBranch() : oldUser.getBranch());
-        oldUser.setMobileNumber(newUser.getMobileNumber() != null && !newUser.getMobileNumber().isEmpty() ? newUser.getMobileNumber() : oldUser.getMobileNumber());
-        oldUser.setYearOfStudy(newUser.getYearOfStudy() != null && !newUser.getYearOfStudy().isEmpty() ? newUser.getYearOfStudy() : oldUser.getYearOfStudy());
-        oldUser.setDescription(newUser.getDescription() != null && !newUser.getDescription().isEmpty() ? newUser.getDescription() : oldUser.getDescription());
-        oldUser.setAASID(newUser.getAASID() != null && !newUser.getAASID().isEmpty() ? newUser.getAASID() : oldUser.getAASID());
-        oldUser.setLinkedinUrl(newUser.getLinkedinUrl() != null && !newUser.getLinkedinUrl().isEmpty() ? newUser.getLinkedinUrl() : oldUser.getLinkedinUrl());
-        oldUser.setImageUrl(newUser.getImageURL() != null && !newUser.getImageURL().isEmpty() ? newUser.getImageURL() : oldUser.getImageUrl());
         userRepo.save(oldUser);
     }
 

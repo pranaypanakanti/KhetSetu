@@ -5,5 +5,6 @@ public enum Category {
     HARVESTER,
     SPRAYER,
     PLOUGH,
-    WATER_PUMP
+    WATER_PUMP,
+    OTHER
 }
