@@ -7,7 +7,7 @@ export default function EquipmentCard({ id, name, description, price, image }) {
   return (
     <div className="border rounded-xl overflow-hidden bg-white transition hover:border-gray-400">
       <div className="h-52 bg-gray-100">
-        <img src={image} alt={name} className="w-full h-full object-cover" />
+        {/* <img src={image} alt={name} className="w-full h-full object-cover" /> */}
       </div>
 
       <div className="p-6 flex flex-col justify-between h-44">
