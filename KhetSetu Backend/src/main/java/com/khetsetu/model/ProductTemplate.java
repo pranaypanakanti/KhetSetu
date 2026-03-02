@@ -15,7 +15,6 @@ public class ProductTemplate {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
     private String category;
 
     private Double minPricePerDay;

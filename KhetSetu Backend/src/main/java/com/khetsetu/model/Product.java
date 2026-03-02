@@ -2,6 +2,7 @@ package com.khetsetu.model;
 
 import com.khetsetu.model.enums.ProductStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -38,11 +39,12 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "village_id")
+    @NotNull
     private Village village;
 
     private Integer maxRentalDistanceKm;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> imageUrls;
 
     @Enumerated(EnumType.STRING)
