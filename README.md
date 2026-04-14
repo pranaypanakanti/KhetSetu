@@ -466,4 +466,6 @@ Contributions are welcome! Here's how you can help:
 
 *Built with ❤️ for Indian farmers*
 
+[🐛 Report Bug](https://github.com/pranaypanakanti/KhetSetu/issues) · [💡 Request Feature](https://github.com/pranaypanakanti/KhetSetu/issues)
+
 </div>
